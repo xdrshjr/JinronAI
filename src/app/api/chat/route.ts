@@ -2,24 +2,50 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import fetch from 'node-fetch';
 
+// 从环境变量获取API配置
+const getEnvApiKey = (provider: string): string => {
+  if (provider === 'openai') {
+    return process.env.OPENAI_API_KEY || '';
+  } else if (provider === 'qwen') {
+    return process.env.QWEN_API_KEY || '';
+  }
+  return '';
+};
+
+const getEnvApiUrl = (provider: string): string => {
+  if (provider === 'openai') {
+    return process.env.OPENAI_API_URL || 'https://api.openai.com/v1';
+  } else if (provider === 'qwen') {
+    return process.env.QWEN_API_URL || 'https://dashscope.aliyuncs.com/api/v1';
+  }
+  return provider === 'openai' ? 'https://api.openai.com/v1' : 'https://dashscope.aliyuncs.com/api/v1';
+};
+
 export async function POST(request: Request) {
   try {
     const { messages, conversationId, apiConfig } = await request.json();
 
-    if (!apiConfig.apiKey) {
+    // 使用apiConfig中的配置，如果为空则尝试从环境变量中获取
+    const config = {
+      ...apiConfig,
+      apiKey: apiConfig.apiKey || getEnvApiKey(apiConfig.provider),
+      apiUrl: apiConfig.apiUrl || getEnvApiUrl(apiConfig.provider)
+    };
+
+    if (!config.apiKey) {
       return NextResponse.json(
-        { error: '请先配置API密钥' },
+        { error: '请先配置API密钥，或在环境变量中设置相应的API密钥' },
         { status: 400 }
       );
     }
 
     // 根据apiConfig.provider选择不同的调用方式
-    if (apiConfig.provider === 'qwen') {
+    if (config.provider === 'qwen') {
       // 阿里千问API调用
-      return handleQwenApiCall(messages, apiConfig);
+      return handleQwenApiCall(messages, config);
     } else {
       // 默认OpenAI API调用
-      return handleOpenAIApiCall(messages, apiConfig);
+      return handleOpenAIApiCall(messages, config);
     }
   } catch (error: any) {
     console.error('聊天请求失败:', error);

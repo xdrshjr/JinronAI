@@ -2,13 +2,36 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import fetch from 'node-fetch';
 
+// 从环境变量获取API配置
+const getEnvApiKey = (provider: string): string => {
+  if (provider === 'openai') {
+    return process.env.OPENAI_API_KEY || '';
+  } else if (provider === 'qwen') {
+    return process.env.QWEN_API_KEY || '';
+  }
+  return '';
+};
+
+const getEnvApiUrl = (provider: string): string => {
+  if (provider === 'openai') {
+    return process.env.OPENAI_API_URL || 'https://api.openai.com/v1';
+  } else if (provider === 'qwen') {
+    return process.env.QWEN_API_URL || 'https://dashscope.aliyuncs.com/api/v1';
+  }
+  return provider === 'openai' ? 'https://api.openai.com/v1' : 'https://dashscope.aliyuncs.com/api/v1';
+};
+
 export async function POST(request: Request) {
   try {
     const { apiKey, apiUrl, model, provider } = await request.json();
 
-    if (!apiKey) {
+    // 使用提供的配置，如果为空则尝试从环境变量中获取
+    const key = apiKey || getEnvApiKey(provider);
+    const url = apiUrl || getEnvApiUrl(provider);
+
+    if (!key) {
       return NextResponse.json(
-        { error: 'API密钥不能为空' },
+        { error: 'API密钥不能为空，请配置API密钥或在环境变量中设置相应的API密钥' },
         { status: 400 }
       );
     }
@@ -17,11 +40,11 @@ export async function POST(request: Request) {
     if (provider === 'qwen') {
       // 阿里千问测试连接逻辑
       try {
-        const response = await fetch(`${apiUrl}/chat/completions`, {
+        const response = await fetch(`${url}/chat/completions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
+            'Authorization': `Bearer ${key}`
           },
           body: JSON.stringify({
             model: model || 'qwen-turbo',
@@ -58,8 +81,8 @@ export async function POST(request: Request) {
     } else {
       // OpenAI测试连接逻辑
       const openai = new OpenAI({
-        apiKey,
-        baseURL: apiUrl,
+        apiKey: key,
+        baseURL: url,
       });
 
       // 发送一个简单的测试请求

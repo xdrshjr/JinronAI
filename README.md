@@ -24,6 +24,7 @@ An advanced chat interface for AI models built with Next.js, featuring multiple 
 - **Advanced Capabilities**
   - Seamless integration with various AI models
   - API configuration options
+  - Environment variable support for API keys
 
 ## 项目简介 (Chinese Introduction)
 
@@ -34,7 +35,7 @@ An advanced chat interface for AI models built with Next.js, featuring multiple 
 - 支持多种任务类型：普通对话、深度思考、论文创新点探索、论文大纲生成等
 - 现代化用户界面：支持深色/浅色模式、代码高亮、Markdown渲染
 - 会话管理：创建和管理多个会话，自动根据上下文生成会话标题
-- 高级功能：与各种AI模型的无缝集成，API配置选项
+- 高级功能：与各种AI模型的无缝集成，API配置选项，支持环境变量配置API密钥
 
 开始使用只需安装依赖并运行开发服务器，详见上方英文说明。
 
@@ -51,6 +52,14 @@ yarn install
 pnpm install
 ```
 
+Then, configure your environment variables by creating a `.env.local` file in the root directory. You can use the `.env.example` file as a template:
+
+```bash
+# Copy the example environment variables
+cp .env.example .env.local
+# Edit the .env.local file with your API keys
+```
+
 Then, run the development server:
 
 ```bash
@@ -64,6 +73,33 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Environment Variables
+
+The application uses the following environment variables:
+
+```
+# OpenAI API configuration
+NEXT_PUBLIC_OPENAI_API_KEY=your_openai_api_key_here
+NEXT_PUBLIC_OPENAI_API_URL=https://api.openai.com/v1
+
+# Qwen API configuration
+NEXT_PUBLIC_QWEN_API_KEY=your_qwen_api_key_here
+NEXT_PUBLIC_QWEN_API_URL=https://dashscope.aliyuncs.com/api/v1
+
+# Default API provider (openai or qwen)
+NEXT_PUBLIC_DEFAULT_API_PROVIDER=openai
+```
+
+These environment variables can be set in the `.env.local` file for local development.
+For server-side operations, the application also uses the following non-public environment variables:
+
+```
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_API_URL=https://api.openai.com/v1
+QWEN_API_KEY=your_qwen_api_key_here
+QWEN_API_URL=https://dashscope.aliyuncs.com/api/v1
+```
 
 ## Architecture
 

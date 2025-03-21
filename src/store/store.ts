@@ -53,28 +53,51 @@ interface ChatState {
 
 // 默认OpenAI模型选项
 const openaiModelOptions = [
-  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' },
-  { value: 'gpt-3.5-turbo-16k', label: 'GPT-3.5 Turbo (16K)' },
-  { value: 'gpt-4', label: 'GPT-4' },
-  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-  { value: 'gpt-4-32k', label: 'GPT-4 (32K)' },
+  { value: 'gpt-4o', label: 'GPT-4o' },
+  { value: 'gpt-4o-mini', label: 'GPT-4o-mini' },
 ];
 
 // 默认阿里千问模型选项
 const qwenModelOptions = [
   { value: 'qwen-max', label: 'Qwen-Max' },
-  { value: 'qwen-plus', label: 'Qwen-Plus' },
   { value: 'qwen-turbo', label: 'Qwen-Turbo' },
+  { value: 'deepseek-r1', label: 'DeepSeek-R1' },
 ];
 
+// 从环境变量读取API配置
+const getEnvApiKey = (provider: string): string => {
+  if (provider === 'openai') {
+    return process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
+  } else if (provider === 'qwen') {
+    return process.env.NEXT_PUBLIC_QWEN_API_KEY || '';
+  }
+  return '';
+};
+
+const getEnvApiUrl = (provider: string): string => {
+  if (provider === 'openai') {
+    return process.env.NEXT_PUBLIC_OPENAI_API_URL || 'https://api.openai.com/v1';
+  } else if (provider === 'qwen') {
+    return process.env.NEXT_PUBLIC_QWEN_API_URL || 'https://dashscope.aliyuncs.com/api/v1';
+  }
+  return provider === 'openai' ? 'https://api.openai.com/v1' : 'https://dashscope.aliyuncs.com/api/v1';
+};
+
+// 获取默认提供商
+const getDefaultProvider = (): string => {
+  const defaultProvider = process.env.NEXT_PUBLIC_DEFAULT_API_PROVIDER;
+  return defaultProvider === 'qwen' ? 'qwen' : 'openai';
+};
+
 // 默认API配置
+const defaultProvider = getDefaultProvider();
 const defaultApiConfig: ApiConfig = {
-  apiKey: '',
-  apiUrl: 'https://api.openai.com/v1',
-  model: 'gpt-3.5-turbo',
+  apiKey: getEnvApiKey(defaultProvider),
+  apiUrl: getEnvApiUrl(defaultProvider),
+  model: defaultProvider === 'openai' ? 'gpt-4o-mini' : 'qwen-max',
   temperature: 0.7,
   maxTokens: 2000,
-  provider: 'openai',
+  provider: defaultProvider,
 };
 
 // 默认API提供商
@@ -83,16 +106,16 @@ const defaultApiProviders: ApiProvider[] = [
     id: 'openai-default',
     name: 'OpenAI',
     provider: 'openai',
-    apiKey: '',
-    apiUrl: 'https://api.openai.com/v1',
+    apiKey: getEnvApiKey('openai'),
+    apiUrl: getEnvApiUrl('openai'),
     availableModels: openaiModelOptions,
   },
   {
     id: 'qwen-default',
     name: '阿里千问',
     provider: 'qwen',
-    apiKey: '',
-    apiUrl: 'https://dashscope.aliyuncs.com/api/v1',
+    apiKey: getEnvApiKey('qwen'),
+    apiUrl: getEnvApiUrl('qwen'),
     availableModels: qwenModelOptions,
   }
 ];
