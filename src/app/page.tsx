@@ -1,103 +1,280 @@
-import Image from "next/image";
+'use client';
+
+import React from 'react';
+import { Layout } from '@/components/layout/Layout';
+import { MessageList } from '@/components/chat/MessageList';
+import { MessageInput } from '@/components/chat/MessageInput';
+import { useStore } from '@/store/store';
+import { v4 as uuidv4 } from 'uuid';
+import { TaskSelector } from '@/components/task/TaskSelector';
+import { PaperInnovationExplorer } from '@/components/task/PaperInnovationExplorer';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const {
+    conversations,
+    currentConversationId,
+    createConversation,
+    updateConversation,
+    setCurrentConversationId,
+    apiConfig,
+  } = useStore();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const [isLoading, setIsLoading] = React.useState(false);
+  
+  const currentConversation = conversations.find(
+    (conv) => conv.id === currentConversationId
+  );
+
+  // 如果没有当前会话，创建一个新的
+  React.useEffect(() => {
+    if (!currentConversationId && conversations.length === 0) {
+      // 创建新会话
+      const newConversationId = createConversation('对话');
+      setCurrentConversationId(newConversationId);
+      
+      // 添加欢迎消息
+      setTimeout(() => {
+        const conversation = conversations.find(conv => conv.id === newConversationId);
+        if (conversation) {
+          updateConversation(newConversationId, {
+            messages: [
+              {
+                id: uuidv4(),
+                role: 'assistant',
+                content: `你好，有什么可以帮到你的吗？
+
+我可以帮你编写各种编程语言的代码，例如：
+
+\`\`\`javascript
+// 一个简单的JavaScript函数
+function greet(name) {
+  return \`Hello, \${name}!\`;
+}
+
+console.log(greet('世界'));  // 输出: Hello, 世界!
+\`\`\`
+
+\`\`\`python
+# Python示例
+def factorial(n):
+    if n == 0 or n == 1:
+        return 1
+    else:
+        return n * factorial(n - 1)
+
+# 计算5的阶乘
+result = factorial(5)
+print(f"5的阶乘是: {result}")  # 输出: 5的阶乘是: 120
+\`\`\`
+
+或者帮你解释一些概念，编写文档等。请告诉我你需要什么帮助？`,
+                timestamp: Date.now(),
+              }
+            ]
+          });
+        }
+      }, 100); // 短暂延迟确保会话已创建
+    }
+  }, [currentConversationId, conversations, createConversation, setCurrentConversationId, updateConversation]);
+
+  const handleSendMessage = async (content: string) => {
+    if (!currentConversation) return;
+
+    const userMessage = {
+      id: uuidv4(),
+      role: 'user' as const,
+      content,
+      timestamp: Date.now(),
+    };
+
+    // 是否是用户的第一条消息
+    const isFirstUserMessage = !currentConversation.messages.some(msg => msg.role === 'user');
+    
+    // 如果是第一条消息，更新会话标题
+    let updatedTitle = currentConversation.title;
+    if (isFirstUserMessage) {
+      updatedTitle = content.length > 20 
+        ? `${content.substring(0, 20)}...` 
+        : content;
+    }
+
+    // 添加用户消息，并清除可能存在的系统通知
+    updateConversation(currentConversation.id, {
+      title: updatedTitle,
+      messages: [...currentConversation.messages, userMessage],
+      updatedAt: Date.now(),
+      // 清除系统通知，下次不再显示
+      systemNotification: undefined
+    });
+
+    setIsLoading(true);
+
+    try {
+      // 获取当前会话的模型设置或使用默认设置
+      const model = currentConversation.model || apiConfig.model;
+      const temperature = currentConversation.temperature !== undefined 
+        ? currentConversation.temperature 
+        : apiConfig.temperature;
+
+      // 如果对话上下文已清除，则只发送当前消息
+      let messagesToSend;
+      if (currentConversation.contextCleared) {
+        // 上下文已清除，只发送当前用户消息
+        messagesToSend = [
+          { role: 'system', content: '以下是新的对话，之前的对话上下文已被清除。' },
+          { role: 'user', content: userMessage.content }
+        ];
+        // 重置contextCleared标志
+        updateConversation(currentConversation.id, {
+          contextCleared: false
+        });
+      } else {
+        // 正常发送所有消息
+        messagesToSend = [...currentConversation.messages, userMessage].map(
+          ({ role, content }) => ({ role, content })
+        );
+      }
+
+      // 发送请求到API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messagesToSend,
+          conversationId: currentConversation.id,
+          apiConfig: {
+            ...useStore.getState().apiConfig,
+            model,
+            temperature
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('请求失败');
+      }
+
+      // 创建AI回复消息
+      const assistantMessage = {
+        id: uuidv4(),
+        role: 'assistant' as const,
+        content: '',
+        timestamp: Date.now(),
+      };
+
+      // 添加空的AI回复消息
+      updateConversation(currentConversation.id, {
+        messages: [
+          ...currentConversation.messages,
+          userMessage,
+          assistantMessage,
+        ],
+        updatedAt: Date.now(),
+      });
+
+      // 处理流式响应
+      if (!response.body) throw new Error('无法读取响应流');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedContent = '';
+
+      // 使用更高效的方式处理流
+      try {
+        let lastUpdateTime = 0;
+        const updateInterval = 50; // 50ms的更新间隔，避免过于频繁的状态更新
+
+        while (true) {
+          const { done, value } = await reader.read();
+          
+          if (value) {
+            const chunk = decoder.decode(value, { stream: true });
+            accumulatedContent += chunk;
+
+            // 限制更新频率，减少不必要的渲染
+            const now = Date.now();
+            if (now - lastUpdateTime > updateInterval || done) {
+              // 更新AI回复消息的内容
+              updateConversation(currentConversation.id, {
+                messages: [
+                  ...currentConversation.messages,
+                  userMessage,
+                  {
+                    ...assistantMessage,
+                    content: accumulatedContent,
+                  },
+                ],
+                updatedAt: now,
+              });
+              lastUpdateTime = now;
+            }
+          }
+
+          if (done) break;
+        }
+      } catch (error) {
+        console.error('读取流失败:', error);
+        throw error;
+      } finally {
+        // 确保最终状态是最新的
+        updateConversation(currentConversation.id, {
+          messages: [
+            ...currentConversation.messages,
+            userMessage,
+            {
+              ...assistantMessage,
+              content: accumulatedContent,
+            },
+          ],
+          updatedAt: Date.now(),
+        });
+      }
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      // 这里可以添加错误提示
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 根据任务类型渲染不同内容
+  const renderContent = () => {
+    if (!currentConversation) return null;
+    
+    // 根据任务类型渲染不同组件
+    switch (currentConversation.taskType) {
+      case 'paper_innovation':
+        return <PaperInnovationExplorer conversationId={currentConversation.id} />;
+      case 'normal_chat':
+      case 'thinking':
+      default:
+        // 普通对话和思考任务显示聊天界面
+        return (
+          <>
+            <MessageList
+              messages={currentConversation.messages || []}
+              conversationId={currentConversation.id}
+              isLoading={isLoading}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <MessageInput
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
+          </>
+        );
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="flex flex-col h-full">
+        {renderContent()}
+      </div>
+      
+      {/* 任务选择器 */}
+      <TaskSelector />
+    </Layout>
   );
 }

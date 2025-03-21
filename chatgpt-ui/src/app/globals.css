@@ -1,6 +1,4 @@
 @import "tailwindcss";
-@import "../styles/markdown.css";
-@import "../styles/highlight.css";
 
 :root {
   --background: #ffffff;
