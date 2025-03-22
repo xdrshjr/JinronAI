@@ -30,6 +30,13 @@ export const TASKS: TaskInfo[] = [
     name: '论文大纲生成任务',
     description: '生成论文的结构大纲',
     icon: 'document'
+  },
+  {
+    type: 'paper_search',
+    category: 'paper_assistant',
+    name: '相关论文查询',
+    description: '根据关键词检索和查看相关论文',
+    icon: 'search'
   }
 ];
 

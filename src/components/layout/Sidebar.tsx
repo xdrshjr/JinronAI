@@ -189,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
             <ChatBubbleLeftRightIcon />
           </div>
-          {!isCollapsed && <span className="text-lg font-semibold">JR-AI</span>}
+          {!isCollapsed && <span className="text-lg font-semibold">JinronAI 稷人</span>}
         </div>
         {!isCollapsed && (
           <Button

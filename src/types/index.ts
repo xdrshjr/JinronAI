@@ -11,6 +11,7 @@ export type TaskType =
   | 'thinking'        // 思考任务
   | 'paper_innovation' // 论文创新点探索
   | 'paper_outline'   // 论文大纲生成任务
+  | 'paper_search'    // 相关论文查询
   | string;           // 支持自定义任务类型
 
 // 任务类别枚举

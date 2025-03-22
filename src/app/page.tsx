@@ -8,6 +8,7 @@ import { useStore } from '@/store/store';
 import { v4 as uuidv4 } from 'uuid';
 import { TaskSelector } from '@/components/task/TaskSelector';
 import { PaperInnovationExplorer } from '@/components/task/PaperInnovationExplorer';
+import { PaperSearch } from '@/components/task/PaperSearch';
 
 export default function Home() {
   const {
@@ -247,6 +248,8 @@ print(f"5的阶乘是: {result}")  # 输出: 5的阶乘是: 120
     switch (currentConversation.taskType) {
       case 'paper_innovation':
         return <PaperInnovationExplorer conversationId={currentConversation.id} />;
+      case 'paper_search':
+        return <PaperSearch conversationId={currentConversation.id} />;
       case 'normal_chat':
       case 'thinking':
       default:
