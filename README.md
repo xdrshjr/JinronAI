@@ -86,8 +86,13 @@ npx next build --no-lint
 # start server
 npx next start -p 5173
 
-```
 
+npm install -g pm2
+pm2 start "npx next start -p 5173" --name "nextapp"
+
+pm2 stop nextapp
+pm2 restart nextapp
+```
 
 ## Environment Variables
 

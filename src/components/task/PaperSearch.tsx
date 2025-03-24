@@ -35,6 +35,8 @@ interface SearchParams {
   startIndex: number;
 }
 
+export const dynamic = 'force-dynamic';
+
 export const PaperSearch: React.FC<{ conversationId: string }> = ({ conversationId }) => {
   const { updateConversation, conversations, apiConfig } = useStore();
   const conversation = conversations.find(c => c.id === conversationId);
