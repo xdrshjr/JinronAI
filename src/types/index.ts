@@ -12,12 +12,14 @@ export type TaskType =
   | 'paper_innovation' // 论文创新点探索
   | 'paper_outline'   // 论文大纲生成任务
   | 'paper_search'    // 相关论文查询
+  | 'pdf_translation' // PDF翻译任务
   | string;           // 支持自定义任务类型
 
 // 任务类别枚举
 export type TaskCategory = 
   | 'general'         // 通用类别
   | 'paper_assistant' // 论文辅助写作类别
+  | 'tools'           // 工具类别
   | string;           // 支持自定义类别
 
 // 任务详情接口

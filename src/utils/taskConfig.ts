@@ -37,6 +37,13 @@ export const TASKS: TaskInfo[] = [
     name: '相关论文查询',
     description: '根据关键词检索和查看相关论文',
     icon: 'search'
+  },
+  {
+    type: 'pdf_translation',
+    category: 'tools',
+    name: 'PDF翻译任务',
+    description: '上传PDF文档并进行翻译',
+    icon: 'document',
   }
 ];
 
@@ -57,7 +64,8 @@ export const getTasksByCategory = () => {
 // 获取任务类别名称映射
 export const CATEGORY_LABELS: Record<string, string> = {
   'general': '通用类别',
-  'paper_assistant': '论文辅助写作类别'
+  'paper_assistant': '论文辅助写作类别',
+  'tools': '工具'
 };
 
 // 通过任务类型获取任务信息
