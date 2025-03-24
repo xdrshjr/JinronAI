@@ -50,6 +50,9 @@ npm install
 yarn install
 # or
 pnpm install
+
+
+
 ```
 
 Then, configure your environment variables by creating a `.env.local` file in the root directory. You can use the `.env.example` file as a template:
@@ -73,6 +76,18 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+## Run in cloud serve
+```bash
+
+# build 
+npx next build --no-lint
+
+# start server
+npx next start -p 5173
+
+```
+
 
 ## Environment Variables
 
