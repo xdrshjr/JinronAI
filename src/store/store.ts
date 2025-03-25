@@ -13,6 +13,7 @@ interface ChatState {
   currentApiProviderId: string | null;
   isLoadingResponse: boolean;
   isTaskSelectorOpen: boolean;
+  currentComponent: string | null;
   
   // 会话管理
   getConversation: (id: string) => Conversation | undefined;
@@ -49,6 +50,9 @@ interface ChatState {
   
   // 加载状态
   setIsLoadingResponse: (isLoading: boolean) => void;
+  
+  // 组件导航
+  setCurrentComponent: (componentName: string | null) => void;
 }
 
 // 默认OpenAI模型选项
@@ -131,6 +135,7 @@ export const useStore = create<ChatState>()(
       currentApiProviderId: 'openai-default',
       isLoadingResponse: false,
       isTaskSelectorOpen: false,
+      currentComponent: null,
       
       // 会话管理
       getConversation: (id) => get().conversations.find(c => c.id === id),
@@ -462,6 +467,11 @@ export const useStore = create<ChatState>()(
       // 加载状态
       setIsLoadingResponse: (isLoading) => {
         set({ isLoadingResponse: isLoading });
+      },
+      
+      // 设置当前组件
+      setCurrentComponent: (componentName) => {
+        set({ currentComponent: componentName });
       }
     }),
     {

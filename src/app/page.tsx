@@ -10,6 +10,10 @@ import { TaskSelector } from '@/components/task/TaskSelector';
 import { PaperInnovationExplorer } from '@/components/task/PaperInnovationExplorer';
 import { PaperSearch } from '@/components/task/PaperSearch';
 import { PdfTranslation } from '@/components/task/PdfTranslation';
+import { About } from '@/components/ui/About';
+import { Blog } from '@/components/ui/Blog';
+import { HelpCenter } from '@/components/ui/HelpCenter';
+import { TermsOfService } from '@/components/ui/TermsOfService';
 
 export default function Home() {
   const {
@@ -19,6 +23,8 @@ export default function Home() {
     updateConversation,
     setCurrentConversationId,
     apiConfig,
+    currentComponent,
+    setCurrentComponent
   } = useStore();
 
   const [isLoading, setIsLoading] = React.useState(false);
@@ -78,6 +84,11 @@ print(f"5的阶乘是: {result}")  # 输出: 5的阶乘是: 120
       }, 100); // 短暂延迟确保会话已创建
     }
   }, [currentConversationId, conversations, createConversation, setCurrentConversationId, updateConversation]);
+
+  // 处理返回到主对话界面
+  const handleBackToChat = () => {
+    setCurrentComponent(null);
+  };
 
   const handleSendMessage = async (content: string) => {
     if (!currentConversation) return;
@@ -241,8 +252,77 @@ print(f"5的阶乘是: {result}")  # 输出: 5的阶乘是: 120
     }
   };
 
-  // 根据任务类型渲染不同内容
+  // 根据任务类型或当前组件渲染不同内容
   const renderContent = () => {
+    // 如果有当前组件，优先渲染组件
+    if (currentComponent) {
+      switch (currentComponent) {
+        case 'About':
+          return (
+            <div className="relative">
+              <button 
+                onClick={handleBackToChat}
+                className="absolute top-4 left-4 text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                返回对话
+              </button>
+              <About />
+            </div>
+          );
+        case 'Blog':
+          return (
+            <div className="relative">
+              <button 
+                onClick={handleBackToChat}
+                className="absolute top-4 left-4 text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                返回对话
+              </button>
+              <Blog />
+            </div>
+          );
+        case 'HelpCenter':
+          return (
+            <div className="relative">
+              <button 
+                onClick={handleBackToChat}
+                className="absolute top-4 left-4 text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                返回对话
+              </button>
+              <HelpCenter />
+            </div>
+          );
+        case 'TermsOfService':
+          return (
+            <div className="relative">
+              <button 
+                onClick={handleBackToChat}
+                className="absolute top-4 left-4 text-blue-600 hover:text-blue-800 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                </svg>
+                返回对话
+              </button>
+              <TermsOfService />
+            </div>
+          );
+        default:
+          return null;
+      }
+    }
+
+    // 没有当前组件时，根据任务类型渲染
     if (!currentConversation) return null;
     
     // 根据任务类型渲染不同组件
@@ -253,31 +333,28 @@ print(f"5的阶乘是: {result}")  # 输出: 5的阶乘是: 120
         return <PaperSearch conversationId={currentConversation.id} />;
       case 'pdf_translation':
         return <PdfTranslation conversationId={currentConversation.id} />;
-      case 'normal_chat':
-      case 'thinking':
       default:
-        // 普通对话和思考任务显示聊天界面
+        // 默认聊天界面
         return (
-          <>
-            <MessageList
-              messages={currentConversation.messages || []}
-              conversationId={currentConversation.id}
-              isLoading={isLoading}
-            />
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              isLoading={isLoading}
-            />
-          </>
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-y-auto">
+              <MessageList 
+                messages={currentConversation.messages || []}
+                conversationId={currentConversation.id}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className="border-t border-gray-200 dark:border-gray-700 py-4">
+              <MessageInput onSendMessage={handleSendMessage} isLoading={isLoading} />
+            </div>
+          </div>
         );
     }
   };
 
   return (
     <Layout>
-      <div className="flex flex-col h-full">
-        {renderContent()}
-      </div>
+      {renderContent()}
       
       {/* 任务选择器 */}
       <TaskSelector />

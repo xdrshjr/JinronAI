@@ -6,6 +6,7 @@ import { useStore } from '@/store/store';
 import { formatRelativeTime } from '@/utils/helpers';
 import { Conversation, Folder } from '@/types';
 import { cn } from '@/utils/cn';
+import { useRouter } from 'next/navigation';
 
 // 使用内联SVG替代Heroicons
 const PlusIcon = () => (
@@ -75,6 +76,36 @@ const ClearAllIcon = () => (
   </svg>
 );
 
+const DownloadIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+  </svg>
+);
+
+const InfoIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+  </svg>
+);
+
+const BookIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+  </svg>
+);
+
+const QuestionMarkIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+  </svg>
+);
+
+const DocumentTextIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+  </svg>
+);
+
 interface SidebarProps {
   className?: string;
 }
@@ -90,8 +121,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     createFolder,
     updateFolder,
     deleteFolder,
-    openTaskSelector
+    openTaskSelector,
+    setCurrentComponent
   } = useStore();
+  
+  const router = useRouter();
   
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
@@ -172,6 +206,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     if (window.confirm('确定要清除所有对话吗？此操作不可恢复。')) {
       conversations.forEach(conv => deleteConversation(conv.id));
     }
+  };
+  
+  // 跳转到指定组件的处理函数
+  const handleNavigate = (componentName: string) => {
+    setCurrentComponent(componentName);
   };
   
   return (
@@ -380,20 +419,55 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         </div>
       </div>
       
-      {/* 底部应用下载按钮 */}
+      {/* 底部应用下载和链接 */}
       <div className={cn(
         "mt-auto border-t border-gray-700 bg-gray-800",
         isCollapsed ? "p-2" : "p-4"
       )}>
-        <Button
-          variant="outline"
-          className="w-full justify-center bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200"
-          leftIcon={<svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>}
-        >
-          {!isCollapsed && "下载应用"}
-        </Button>
+        <div className="flex flex-col space-y-3">
+          {/* 下载应用按钮 */}
+          <Button
+            variant="outline"
+            className="w-full justify-center bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200"
+            leftIcon={<DownloadIcon />}
+          >
+            {!isCollapsed && "下载应用"}
+          </Button>
+          
+          {/* 页脚链接 - 只在非折叠模式下显示 */}
+          {!isCollapsed && (
+            <div className="flex justify-between pt-2 text-xs text-gray-400">
+              <button 
+                onClick={() => handleNavigate('About')}
+                className="hover:text-gray-200 flex items-center gap-1"
+              >
+                <InfoIcon />
+                <span>关于</span>
+              </button>
+              <button 
+                onClick={() => handleNavigate('Blog')}
+                className="hover:text-gray-200 flex items-center gap-1"
+              >
+                <BookIcon />
+                <span>博客</span>
+              </button>
+              <button 
+                onClick={() => handleNavigate('HelpCenter')}
+                className="hover:text-gray-200 flex items-center gap-1"
+              >
+                <QuestionMarkIcon />
+                <span>帮助中心</span>
+              </button>
+              <button 
+                onClick={() => handleNavigate('TermsOfService')}
+                className="hover:text-gray-200 flex items-center gap-1"
+              >
+                <DocumentTextIcon />
+                <span>服务条款</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
