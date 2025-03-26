@@ -14,6 +14,7 @@ interface ChatState {
   isLoadingResponse: boolean;
   isTaskSelectorOpen: boolean;
   currentComponent: string | null;
+  isMobileSidebarOpen: boolean;
   
   // 会话管理
   getConversation: (id: string) => Conversation | undefined;
@@ -53,6 +54,9 @@ interface ChatState {
   
   // 组件导航
   setCurrentComponent: (componentName: string | null) => void;
+  
+  // 移动端侧边栏
+  toggleMobileSidebar: () => void;
 }
 
 // 默认OpenAI模型选项
@@ -136,6 +140,7 @@ export const useStore = create<ChatState>()(
       isLoadingResponse: false,
       isTaskSelectorOpen: false,
       currentComponent: null,
+      isMobileSidebarOpen: false,
       
       // 会话管理
       getConversation: (id) => get().conversations.find(c => c.id === id),
@@ -472,17 +477,21 @@ export const useStore = create<ChatState>()(
       // 设置当前组件
       setCurrentComponent: (componentName) => {
         set({ currentComponent: componentName });
+      },
+      
+      // 移动端侧边栏
+      toggleMobileSidebar: () => {
+        set(state => ({ isMobileSidebarOpen: !state.isMobileSidebarOpen }));
       }
     }),
     {
       name: 'chat-storage',
       partialize: (state) => ({
-        conversations: state.conversations,
-        folders: state.folders,
-        apiConfig: state.apiConfig,
-        apiProviders: state.apiProviders,
-        currentApiProviderId: state.currentApiProviderId,
-      }),
+        ...state,
+        isLoadingResponse: false,
+        isTaskSelectorOpen: false,
+        isMobileSidebarOpen: false
+      })
     }
   )
 ); 

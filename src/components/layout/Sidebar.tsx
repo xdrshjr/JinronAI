@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/store/store';
 import { formatRelativeTime } from '@/utils/helpers';
@@ -122,7 +122,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     updateFolder,
     deleteFolder,
     openTaskSelector,
-    setCurrentComponent
+    setCurrentComponent,
+    isMobileSidebarOpen,
+    toggleMobileSidebar
   } = useStore();
   
   const router = useRouter();
@@ -134,14 +136,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
   const [editingFolderName, setEditingFolderName] = useState('');
   const [isCollapsed, setIsCollapsed] = useState(false);
   
+  // 检测是否为移动设备
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  
+  // 在移动设备上，当侧边栏关闭时，确保侧边栏不是折叠状态
+  useEffect(() => {
+    if (!isMobileSidebarOpen && isMobile && isCollapsed) {
+      setIsCollapsed(false);
+    }
+  }, [isMobileSidebarOpen, isMobile, isCollapsed]);
+  
   // 处理创建对话
   const handleNewChat = () => {
     createConversation('对话');
+    if (isMobile) {
+      toggleMobileSidebar(); // 在移动设备上创建新对话后关闭侧边栏
+    }
   };
   
   // 处理打开任务选择器
   const handleOpenTaskSelector = () => {
     openTaskSelector();
+    if (isMobile) {
+      toggleMobileSidebar(); // 在移动设备上打开任务选择器后关闭侧边栏
+    }
   };
   
   // 切换文件夹展开/折叠状态
@@ -213,28 +231,36 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
     setCurrentComponent(componentName);
   };
   
+  // 处理选择会话
+  const handleSelectConversation = (id: string) => {
+    setCurrentConversationId(id);
+    if (isMobile) {
+      toggleMobileSidebar(); // 在移动设备上选择会话后关闭侧边栏
+    }
+  };
+  
   return (
     <aside className={cn(
-      "flex flex-col bg-gray-900 text-gray-100 transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64",
+      "flex flex-col bg-gray-900 text-gray-100 h-full",
+      isCollapsed && !isMobile ? "w-16" : "w-64",
       className
     )}>
       {/* 顶部横栏 */}
       <div className="h-16 border-b border-gray-700 flex items-center justify-between px-4 bg-gray-900">
         <div 
           className="flex items-center space-x-2 cursor-pointer"
-          onClick={() => isCollapsed && setIsCollapsed(false)}
+          onClick={() => !isMobile && isCollapsed && setIsCollapsed(false)}
         >
           <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
             <ChatBubbleLeftRightIcon />
           </div>
-          {!isCollapsed && <span className="text-lg font-semibold">JinronAI 稷人</span>}
+          {(!isCollapsed || isMobile) && <span className="text-lg font-semibold">JinronAI 稷人</span>}
         </div>
-        {!isCollapsed && (
+        {(!isCollapsed || isMobile) && (
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsCollapsed(true)}
+            onClick={isMobile ? toggleMobileSidebar : () => setIsCollapsed(true)}
             className="text-gray-400 hover:text-white hover:bg-gray-800"
           >
             <XMarkIcon />
@@ -251,11 +277,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             onClick={handleOpenTaskSelector}
             className={cn(
               "w-full bg-blue-800 hover:bg-blue-700 border border-blue-700",
-              isCollapsed ? "px-2" : ""
+              isCollapsed && !isMobile ? "px-2" : ""
             )}
             leftIcon={<TaskIcon />}
           >
-            {!isCollapsed && "任务"}
+            {(!isCollapsed || isMobile) && "任务"}
           </Button>
           
           {/* 第二行按钮 - 对话和清空各占一半 */}
@@ -264,14 +290,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
               onClick={handleNewChat}
               className={cn(
                 "flex-1 bg-gray-800 hover:bg-gray-700 border border-gray-700",
-                isCollapsed ? "px-2" : ""
+                isCollapsed && !isMobile ? "px-2" : ""
               )}
               leftIcon={<PlusIcon />}
             >
-              {!isCollapsed && "对话"}
+              {(!isCollapsed || isMobile) && "对话"}
             </Button>
             
-            {!isCollapsed && (
+            {(!isCollapsed || isMobile) && (
               <Button
                 onClick={clearAllConversations}
                 className="flex-1 bg-red-900/30 hover:bg-red-900/50 border border-red-900/50 text-red-300"
@@ -285,8 +311,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
         
         <div className="space-y-1 mb-4">
           <div className="flex justify-between items-center px-2 py-1">
-            {!isCollapsed && <h2 className="text-xs uppercase font-semibold text-gray-400">对话</h2>}
-            {!isCollapsed && (
+            {(!isCollapsed || isMobile) && <h2 className="text-xs uppercase font-semibold text-gray-400">对话</h2>}
+            {(!isCollapsed || isMobile) && (
               <Button
                 variant="ghost"
                 size="icon"
@@ -299,7 +325,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           </div>
           
           {/* 新建文件夹输入框 */}
-          {isCreatingFolder && !isCollapsed && (
+          {isCreatingFolder && (!isCollapsed || isMobile) && (
             <div className="flex items-center px-2 py-1">
               <input
                 type="text"
@@ -330,7 +356,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
                   <ChevronRightIcon />
                 )}
                 
-                {!isCollapsed && (
+                {(!isCollapsed || isMobile) && (
                   <>
                     {editingFolderId === folder.id ? (
                       <input
@@ -371,20 +397,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
               </div>
               
               {/* 文件夹内的对话 */}
-              {expandedFolders[folder.id] && !isCollapsed && (
+              {expandedFolders[folder.id] && (!isCollapsed || isMobile) && (
                 <div className="pl-6 space-y-1">
                   {getConversationsInFolder(folder.id).map(conversation => (
                     <ConversationItem 
                       key={conversation.id}
                       conversation={conversation} 
                       isActive={conversation.id === currentConversationId}
-                      onClick={() => setCurrentConversationId(conversation.id)}
+                      onClick={() => handleSelectConversation(conversation.id)}
                       onDelete={(e) => {
                         e.stopPropagation();
                         if (window.confirm('确定要删除此对话吗？')) {
                           deleteConversation(conversation.id);
                         }
                       }}
+                      isCollapsed={isCollapsed && !isMobile}
                     />
                   ))}
                 </div>
@@ -393,36 +420,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
           ))}
           
           {/* 未分类对话 */}
-          {!isCollapsed && (
-            <div className="mt-4">
+          <div className="mt-4">
+            {(!isCollapsed || isMobile) && (
               <h3 className="text-xs uppercase font-semibold text-gray-400 px-2 py-1">
                 最近任务
               </h3>
-              <div className="space-y-1 mt-1">
-                {unorganizedConversations.map(conversation => (
-                  <ConversationItem 
-                    key={conversation.id}
-                    conversation={conversation} 
-                    isActive={conversation.id === currentConversationId}
-                    onClick={() => setCurrentConversationId(conversation.id)}
-                    onDelete={(e) => {
-                      e.stopPropagation();
-                      if (window.confirm('确定要删除此对话吗？')) {
-                        deleteConversation(conversation.id);
-                      }
-                    }}
-                  />
-                ))}
-              </div>
+            )}
+            <div className={(isCollapsed && !isMobile) ? "" : "mt-1 space-y-1"}>
+              {unorganizedConversations.map(conversation => (
+                <ConversationItem 
+                  key={conversation.id}
+                  conversation={conversation} 
+                  isActive={conversation.id === currentConversationId}
+                  onClick={() => handleSelectConversation(conversation.id)}
+                  onDelete={(e) => {
+                    e.stopPropagation();
+                    if (window.confirm('确定要删除此对话吗？')) {
+                      deleteConversation(conversation.id);
+                    }
+                  }}
+                  isCollapsed={isCollapsed && !isMobile}
+                />
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </div>
       
       {/* 底部应用下载和链接 */}
       <div className={cn(
         "mt-auto border-t border-gray-700 bg-gray-800",
-        isCollapsed ? "p-2" : "p-4"
+        (isCollapsed && !isMobile) ? "p-2" : "p-4"
       )}>
         <div className="flex flex-col space-y-3">
           {/* 下载应用按钮 */}
@@ -431,11 +459,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ className }) => {
             className="w-full justify-center bg-gray-700 hover:bg-gray-600 border-gray-600 text-gray-200"
             leftIcon={<DownloadIcon />}
           >
-            {!isCollapsed && "下载应用"}
+            {(!isCollapsed || isMobile) && "下载应用"}
           </Button>
           
           {/* 页脚链接 - 只在非折叠模式下显示 */}
-          {!isCollapsed && (
+          {(!isCollapsed || isMobile) && (
             <div className="flex justify-between pt-2 text-xs text-gray-400">
               <button 
                 onClick={() => handleNavigate('About')}
@@ -479,30 +507,40 @@ interface ConversationItemProps {
   isActive: boolean;
   onClick: () => void;
   onDelete: (e: React.MouseEvent) => void;
+  isCollapsed: boolean;
 }
 
 const ConversationItem: React.FC<ConversationItemProps> = ({ 
   conversation, 
   isActive, 
   onClick, 
-  onDelete 
+  onDelete,
+  isCollapsed
 }) => {
   return (
     <div
       className={cn(
-        "flex items-center px-2 py-1.5 rounded-md cursor-pointer group",
+        "flex items-center py-1.5 rounded-md cursor-pointer group",
+        isCollapsed ? "justify-center px-1" : "px-2",
         isActive ? "bg-gray-800 border border-gray-700" : "hover:bg-gray-800"
       )}
       onClick={onClick}
     >
       <ChatBubbleLeftRightIcon />
-      <span className="flex-1 truncate text-sm">{conversation.title}</span>
-      <button
-        onClick={onDelete}
-        className="p-1 hover:bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-      >
-        <TrashIcon />
-      </button>
+      {!isCollapsed && (
+        <>
+          <span className="flex-1 ml-2 truncate text-sm">{conversation.title}</span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(e);
+            }}
+            className="p-1 hover:bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <TrashIcon />
+          </button>
+        </>
+      )}
     </div>
   );
 }; 

@@ -18,17 +18,25 @@ export const SubHeader: React.FC<SubHeaderProps> = ({ className }) => {
 
   return (
     <div className={cn(
-      "h-12 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center px-4",
+      "h-auto bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2",
       className
     )}>
-      <div className="flex items-center space-x-4 max-w-4xl w-full">
-        <ConversationSelector />
+      <div className="flex flex-wrap items-center gap-2 max-w-4xl w-full mx-auto">
+        <div className="w-full md:w-auto">
+          <ConversationSelector />
+        </div>
         
         {currentConversationId && (
           <>
-            <ApiProviderSelector />
-            <ModelSelector conversationId={currentConversationId} />
-            <TemperatureSelector conversationId={currentConversationId} />
+            <div className="w-auto">
+              <ApiProviderSelector />
+            </div>
+            <div className="w-auto">
+              <ModelSelector conversationId={currentConversationId} />
+            </div>
+            <div className="w-auto">
+              <TemperatureSelector conversationId={currentConversationId} />
+            </div>
           </>
         )}
       </div>

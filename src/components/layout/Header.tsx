@@ -70,7 +70,8 @@ export const Header: React.FC<HeaderProps> = ({ className, onOpenApiConfig }) =>
   const { theme, setTheme } = useTheme();
   const { 
     conversations, 
-    currentConversationId
+    currentConversationId,
+    toggleMobileSidebar
   } = useStore();
   
   // 添加客户端状态以修复水合问题
@@ -92,7 +93,10 @@ export const Header: React.FC<HeaderProps> = ({ className, onOpenApiConfig }) =>
       className
     )}>
       <div className="flex items-center">
-        <button className="md:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
+        <button 
+          className="md:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+          onClick={toggleMobileSidebar}
+        >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
